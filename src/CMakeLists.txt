@@ -11,11 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# Modifications Copyright 2022 Code Intelligence GmbH
 
 add_subdirectory(libfuzzer)
 
 add_library(protobuf-mutator
             binary_format.cc
+            json_format.cc
             mutator.cc
             text_format.cc
             utf8_fix.cc)
