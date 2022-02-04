@@ -11,6 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
+// Modifications Copyright 2022 Code Intelligence GmbH
 
 #include "src/libfuzzer/libfuzzer_macro.h"
 
@@ -142,7 +144,7 @@ size_t MutateMessage(unsigned int seed, const InputReader& input,
   GetMutator()->Mutate(message, max_size);
   if (size_t new_size = output->Write(*message)) {
     assert(new_size <= output->size());
-    GetCache()->Store(output->data(), new_size, message);
+//    GetCache()->Store(output->data(), new_size, message);
     return new_size;
   }
   return 0;
@@ -159,7 +161,7 @@ size_t CrossOverMessages(unsigned int seed, const InputReader& input1,
   GetMutator()->CrossOver(*message2, message1, max_size);
   if (size_t new_size = output->Write(*message1)) {
     assert(new_size <= output->size());
-    GetCache()->Store(output->data(), new_size, message1);
+//    GetCache()->Store(output->data(), new_size, message1);
     return new_size;
   }
   return 0;
@@ -222,7 +224,7 @@ size_t CustomProtoCrossOver(bool binary, const uint8_t* data1, size_t size1,
 
 bool LoadProtoInput(bool binary, const uint8_t* data, size_t size,
                     protobuf::Message* input) {
-  if (GetCache()->LoadIfSame(data, size, input)) return true;
+//  if (GetCache()->LoadIfSame(data, size, input)) return true;
   auto result = binary ? ParseBinaryMessage(data, size, input)
                        : ParseTextMessage(data, size, input);
   if (!result) return false;
