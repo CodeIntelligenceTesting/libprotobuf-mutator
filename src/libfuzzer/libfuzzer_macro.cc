@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "src/binary_format.h"
+#include "src/json_format.h"
 #include "src/libfuzzer/libfuzzer_mutator.h"
 #include "src/text_format.h"
 
@@ -74,6 +75,24 @@ class TextOutputWriter : public OutputWriter {
 
   size_t Write(const protobuf::Message& message) override {
     return SaveMessageAsText(message, data(), size());
+  }
+};
+
+class JsonInputReader : public InputReader {
+ public:
+  using InputReader::InputReader;
+
+  bool Read(protobuf::Message* message) const override {
+    return ParseJsonMessage(data(), size(), message);
+  }
+};
+
+class JsonOutputWriter : public OutputWriter {
+ public:
+  using OutputWriter::OutputWriter;
+
+  size_t Write(const protobuf::Message& message) override {
+    return SaveMessageAsJson(message, data(), size());
   }
 };
 
@@ -185,6 +204,24 @@ size_t CrossOverTextMessages(const uint8_t* data1, size_t size1,
   return CrossOverMessages(seed, input1, input2, &output, message1, message2);
 }
 
+size_t MutateJsonMessage(uint8_t* data, size_t size, size_t max_size,
+                         unsigned int seed, protobuf::Message* message) {
+  JsonInputReader input(data, size);
+  JsonOutputWriter output(data, max_size);
+  return MutateMessage(seed, input, &output, message);
+}
+
+size_t CrossOverJsonMessages(const uint8_t* data1, size_t size1,
+                             const uint8_t* data2, size_t size2, uint8_t* out,
+                             size_t max_out_size, unsigned int seed,
+                             protobuf::Message* message1,
+                             protobuf::Message* message2) {
+  JsonInputReader input1(data1, size1);
+  JsonInputReader input2(data2, size2);
+  JsonOutputWriter output(out, max_out_size);
+  return CrossOverMessages(seed, input1, input2, &output, message1, message2);
+}
+
 size_t MutateBinaryMessage(uint8_t* data, size_t size, size_t max_size,
                            unsigned int seed, protobuf::Message* message) {
   BinaryInputReader input(data, size);
@@ -208,7 +245,7 @@ size_t CrossOverBinaryMessages(const uint8_t* data1, size_t size1,
 size_t CustomProtoMutator(bool binary, uint8_t* data, size_t size,
                           size_t max_size, unsigned int seed,
                           protobuf::Message* input) {
-  auto mutate = binary ? &MutateBinaryMessage : &MutateTextMessage;
+  auto mutate = binary ? &MutateBinaryMessage : &MutateJsonMessage;
   return mutate(data, size, max_size, seed, input);
 }
 
@@ -217,7 +254,7 @@ size_t CustomProtoCrossOver(bool binary, const uint8_t* data1, size_t size1,
                             size_t max_out_size, unsigned int seed,
                             protobuf::Message* input1,
                             protobuf::Message* input2) {
-  auto cross = binary ? &CrossOverBinaryMessages : &CrossOverTextMessages;
+  auto cross = binary ? &CrossOverBinaryMessages : &CrossOverJsonMessages;
   return cross(data1, size1, data2, size2, out, max_out_size, seed, input1,
                input2);
 }
@@ -226,7 +263,7 @@ bool LoadProtoInput(bool binary, const uint8_t* data, size_t size,
                     protobuf::Message* input) {
 //  if (GetCache()->LoadIfSame(data, size, input)) return true;
   auto result = binary ? ParseBinaryMessage(data, size, input)
-                       : ParseTextMessage(data, size, input);
+                       : ParseJsonMessage(data, size, input);
   if (!result) return false;
   GetMutator()->Seed(size);
   GetMutator()->Fix(input);

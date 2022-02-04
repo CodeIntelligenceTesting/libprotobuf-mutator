@@ -14,26 +14,23 @@
 //
 // Modifications Copyright 2022 Code Intelligence GmbH
 
-#ifndef PORT_PROTOBUF_H_
-#define PORT_PROTOBUF_H_
+#ifndef SRC_JSON_FORMAT_H_
+#define SRC_JSON_FORMAT_H_
 
 #include <string>
 
-#include "google/protobuf/any.pb.h"
-#include "google/protobuf/descriptor.pb.h"
-#include "google/protobuf/util/json_util.h"
-#include "google/protobuf/message.h"
-#include "google/protobuf/text_format.h"
-#include "google/protobuf/util/message_differencer.h"
-#include "google/protobuf/wire_format.h"
+#include "port/protobuf.h"
 
 namespace protobuf_mutator {
 
-namespace protobuf = google::protobuf;
-
-// String type used by google::protobuf.
-using String = std::string;
+// JSON serialization of protos.
+bool ParseJsonMessage(const uint8_t* data, size_t size,
+                      protobuf::Message* output);
+bool ParseJsonMessage(const std::string& data, protobuf::Message* output);
+size_t SaveMessageAsJson(const protobuf::Message& message, uint8_t* data,
+                         size_t max_size);
+std::string SaveMessageAsJson(const protobuf::Message& message);
 
 }  // namespace protobuf_mutator
 
-#endif  // PORT_PROTOBUF_H_
+#endif  // SRC_JSON_FORMAT_H_
